@@ -1,0 +1,15 @@
+{
+    "name": "erick/php-login-api",
+    "autoload": {
+        "psr-4": {
+            "Erick\\PhpLoginApi\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "ericksax",
+            "email": "erickfreitas@gmail.com"
+        }
+    ],
+    "require": {}
+}
