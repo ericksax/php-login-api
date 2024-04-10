@@ -1,8 +1,11 @@
 <?php
 
 namespace Erick\PhpLoginApi\database;
-
+use Dotenv;
 use PDO;
+
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__, 'myconfig');
+$dotenv->load();
 
 class Connection {
 

@@ -29,7 +29,7 @@ class User {
     }
 
     try {
-      $query = 'INSEWRT INTO users (login, name, password) VALUES (:login, :name, :password)';
+      $query = 'INSERT INTO users (login, name, password) VALUES (:login, :name, :password)';
       $statement = $this->pdo->prepare($query);
       $statement->execute([
         'login' => $login,

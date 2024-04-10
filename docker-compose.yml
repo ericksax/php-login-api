@@ -25,7 +25,7 @@ services:
     depends_on:
       - db
     volumes:
-      - ./src/app:/var/www/html/src/app
+      - .:/var/www/html
 
 volumes:
   postgres_data:
