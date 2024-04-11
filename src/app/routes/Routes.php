@@ -7,7 +7,7 @@ use Erick\PhpLoginApi\app\helpers\Uri;
 class Routes {
   public const CONTROLLER_NAMESPACE = 'Erick\PhpLoginApi\app\controllers\\';
 
-  static function load(string $controller, string $action) {
+  static function load(string $controller, string $action, $params = []) {
     $controllerClass = self::CONTROLLER_NAMESPACE . $controller;
 
     if(!class_exists($controllerClass)) {
@@ -20,8 +20,8 @@ class Routes {
       throw new \Exception('Action ' . $action . ' not found', 404);
     }
 
-    $controller = new $controllerClass();
-    $controller->$action();
+    // Passa os parâmetros para a ação do controlador
+    return call_user_func_array([$controllerInstance, $action], $params);
   }
 
   public static function getRoutes() {
@@ -29,15 +29,28 @@ class Routes {
     $routes = [
       'POST' => [
         '/login' => fn() => self::load('LoginController', 'login'),
-        '/register' => fn() => self::load('RegisterController', 'register'),
-        '/users' => fn() => self::load('UserController', 'index')
+        '/document' => fn() => self::load('RegisterController', 'createDocument'),
+        '/users' => fn() => self::load('UserController', 'createUser')
       ],
       'GET' => [
-        '/' => fn() => self::load('HomeController', 'index'),
-        '/users' => self::load('UserController', 'show')
-        ]
-      ];
-
+        '/users' => fn() => self::load('UserController', 'showUsers'),
+        // Modificando para capturar o ID dinâmico
+        '/users/(\d+)' => function($id) {
+          return self::load('UserController', 'retrieve', [$id]);
+        },
+        '/documents' => fn() => self::load('HomeController', 'index')
+      ],
+      'PUT' => [
+        '/users/(\d+)' => function($id) {
+          return self::load('UserController', 'updateUser', [$id]);
+        },
+      ],
+      'DELETE' => [
+        '/users/(\d+)' => function($id) {
+          return self::load('UserController', 'deleteUser', [$id]);
+        },
+      ]
+    ];
     return $routes;
   }
 
@@ -47,23 +60,26 @@ class Routes {
       $method = Request::get();
       $path = Uri::get('path');
 
-      echo $method . ' ' . $path;
-
       if(!isset($routes[$method])) {
         throw new \Exception('Route Method not found in its API', 404);
       }
 
-      if(!isset($routes[$method][$path])) {
-        throw new \Exception('Route not found', 404);
+      // Itera sobre as rotas definidas para o método atual
+      foreach ($routes[$method] as $route => $handler) {
+        // Tenta fazer a correspondência da rota com o caminho solicitado
+        if (preg_match('#^' . $route . '$#', $path, $matches)) {
+          // Remove a primeira entrada que corresponde à URL completa
+          array_shift($matches);
+          // Chama o manipulador da rota com os parâmetros capturados
+          $handler(...$matches);
+          return;
+        }
       }
 
-
-
-      $routes[$method][$path]();
+      throw new \Exception('Route not found', 404);
 
     } catch (\Throwable $th) {
       echo $th->getMessage();
     }
   }
-
 }
