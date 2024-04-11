@@ -1,9 +1,12 @@
 <?php
 namespace Erick\PhpLoginApi\app\controllers;
 
+use Erick\PhpLoginApi\app\services\Login;
+
 class LoginController {
 
   public function login() {
-    echo 'Login';
+    $login = new Login;
+    $login->Login();
   }
 }
