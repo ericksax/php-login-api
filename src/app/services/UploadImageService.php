@@ -13,20 +13,27 @@ class UploadImageService
         $this->pdo = Connection::connect();
     }
 
-    public function uploadImage($userId, $documentId) {
+    public function uploadImage($documentId) {
         $tmpName = $this->image['tmp_name'];
+        $image = $this->image['image_path'];
         $name = $this->image['name'];
         $path = '../assets/images/' . uniqid().'_'.$name;  
 
-        move_uploaded_file($tmpName, $path);
+        echo $image;
 
-        $query = "INSERT INTO images (path, name, document_id, user_id) VALUES (:path)";
+        if(!move_uploaded_file($image, $path)){
+            
+            http_response_code(500);
+            echo json_encode(['error' => 'Erro ao fazer upload da imagem']);
+            exit;
+        };
+
+        $query = "INSERT INTO images (path, name, document_id VALUES (:path)";
         $statement = $this->pdo->prepare($query);
         $statement->execute([
             'path' => $tmpName,
             'name' => $name,
-            'document_id' => $documentId,
-            'user_id' => $userId
+            'document_id' => $documentId
         ]);
     }
     

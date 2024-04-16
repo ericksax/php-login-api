@@ -30,7 +30,8 @@ class Routes {
       'POST' => [
         '/login' => fn() => self::load('LoginController', 'login'),
         '/document' => fn() => self::load('RegisterController', 'createDocument'),
-        '/users' => fn() => self::load('UserController', 'createUser')
+        '/users' => fn() => self::load('UserController', 'createUser'),
+        '/upload' => fn() => self::load('ImageController', 'uploadImage')
       ],
       'GET' => [
         '/users' => fn() => self::load('UserController', 'showUsers'),
@@ -38,9 +39,15 @@ class Routes {
         '/users/(\d+)' => function($id) {
           return self::load('UserController', 'retrieve', [$id]);
         },
-        '/documents' => fn() => self::load('HomeController', 'index')
+        '/documents' => fn() => self::load('HomeController', 'index'),
+        '/documents/(\d+)' => function($id) {
+          return self::load('DocumentController', 'read', [$id]);
+        }
       ],
       'PUT' => [
+        '/documents/(\d+)' => function($id) {
+          return  self::load('DocumentController', 'updateDocument', [$id]);
+        },
         '/users/(\d+)' => function($id) {
           return self::load('UserController', 'updateUser', [$id]);
         },
