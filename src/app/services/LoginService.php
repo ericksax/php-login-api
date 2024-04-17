@@ -17,7 +17,8 @@ class LoginService {
     $userPass = filter_var($this->data['password'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
 
     if(!$userLogin || !$userPass) {
-      throw new \Exception('missing credentials', 401);
+      http_response_code(400);
+      throw new \Exception('missing credentials', 400);
     }
 
     $query = "SELECT * FROM users WHERE login = :login";
@@ -27,11 +28,13 @@ class LoginService {
     $user = $stmt->fetch();
 
     if(!$user) {
+     http_response_code(404);
      throw new \Exception('User not found', 404);
     }
 
     if(!password_verify($userPass, $user->password)) {
-      throw new \Exception('Invalide credentials', 401);
+      http_response_code(401);
+      throw new \Exception('Invalide credentials');
     }
 
     $payload = [
