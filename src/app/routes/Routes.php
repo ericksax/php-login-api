@@ -31,7 +31,10 @@ class Routes {
         '/login' => fn() => self::load('LoginController', 'login'),
         '/document' => fn() => self::load('RegisterController', 'createDocument'),
         '/users' => fn() => self::load('UserController', 'createUser'),
-        '/upload' => fn() => self::load('ImageController', 'uploadImage')
+        '/upload' => fn() => self::load('ImageController', 'uploadImage'),
+        '/documents/(\d+)' => function($id) { 
+          return self::load('DocumentController', 'updateDocument', [$id]);
+        }
       ],
       'GET' => [
         '/users' => fn() => self::load('UserController', 'showUsers'),
