@@ -39,10 +39,7 @@ class DocumentService
 
   public function update($id)
   {
-      
-
     try {
-      
       $query = 'SELECT * FROM documents WHERE id = :id';
       $statement = $this->pdo->prepare($query);
       $statement->execute(['id' => $id]);

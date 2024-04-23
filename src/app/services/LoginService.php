@@ -39,14 +39,20 @@ class LoginService {
 
     $payload = [
       'user_id' => $user->id,
-      'exp' => time() + (60 * 60), // Token expira em 1 hora
+      "is_admin" => $user->is_admin,
+      'exp' => time() + (60 * 60), 
     ];
 
     $token = JWT::encode($payload, $_ENV['JWT_SECRET'], 'HS256');
 
     // Retornar o token para o usuário
     echo json_encode([
-      'token' => $token
+      'token' => $token,
+      'user' => [
+        'id' => $user->id,
+        'name' => $user->name,
+        'login' => $user->login
+      ]
     ]);
   }
 }
