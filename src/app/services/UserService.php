@@ -1,8 +1,8 @@
 <?php
 
 namespace Erick\PhpLoginApi\app\services;
-use Erick\PhpLoginApi\database\Connection;
 
+use Erick\PhpLoginApi\database\Connection;
 use PDO;
 
 class UserService
@@ -18,61 +18,66 @@ class UserService
 
   function create()
   {
-    $login = filter_var($this->data['login'], FILTER_SANITIZE_NUMBER_INT);
-    $name = filter_var($this->data['name'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-    $password = filter_var($this->data['password'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-    $phone = filter_var($this->data['phone'], FILTER_SANITIZE_NUMBER_INT);
-    $is_admin = filter_var($this->data['is_admin'], FILTER_VALIDATE_BOOLEAN);
+    $usuario = filter_var($this->data['usuario'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+    $nome_completo = filter_var($this->data['nome_completo'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+    $senha = filter_var($this->data['senha'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+    $telefone = filter_var($this->data['telefone'], FILTER_SANITIZE_NUMBER_INT);
+    
+    if(!isset($this->data['admin'])) {
+      $admin = false;
+    } else {
+      $admin = filter_var($this->data['admin'], FILTER_VALIDATE_BOOLEAN);
+    }
 
-    if (!$login || !$name || !$password || !$phone) {
+    if (!$usuario || !$nome_completo || !$senha || !$telefone) {
       http_response_code(400); // Requisição inválida
       echo json_encode(['message' => 'Todos os campos são obrigatórios']);
       exit();
     }
 
-    if (strlen($password) < 8) {
+    if (strlen($senha) < 8) {
       http_response_code(400); // Requisição inválida
       echo json_encode(['message' => 'A senha deve ter pelo menos 8 caracteres']);
       exit();
     }
 
-    if ($this->UserExists($login)) {
+    if ($this->UserExists($usuario)) {
       http_response_code(409); // Conflito
       echo json_encode(['message' => 'Usuário já existe']);
       exit();
     }
 
     try {
-      $encryptedPassword = password_hash($password, PASSWORD_DEFAULT);
+      $encryptedPassword = password_hash($senha, PASSWORD_DEFAULT);
 
       $user = [
-        'login' => $login,
-        'name' => $name,
-        'phone' => $phone,
-        'password' => $encryptedPassword,
+        'usuario' => $usuario,
+        'nome_completo' => $nome_completo,
+        'telefone' => $telefone,
+        'senha' => $encryptedPassword,
       ];
 
 
-      if ($is_admin) {
-        $user['is_admin'] = true;
+      if ($admin) {
+        $user['admin'] = true;
       }
 
       // Montar a query SQL com base no array $user
-      $query = 'INSERT INTO users (login, name, phone, ';
+      $query = 'INSERT INTO usuario_transportadora (usuario, nome_completo, telefone, ';
 
-      // Adicionar is_admin à query se estiver definido no array $user
-      if (isset($user['is_admin'])) {
-        $query .= 'is_admin, ';
+      // Adicionar admin à query se estiver definido no array $user
+      if (isset($user['admin'])) {
+        $query .= 'admin, ';
       }
 
-      $query .= 'password) VALUES (:login, :name, :phone, ';
+      $query .= 'senha) VALUES (:usuario, :nome_completo, :telefone, ';
 
-      // Adicionar marcador de posição para is_admin se estiver definido no array $user
-      if (isset($user['is_admin'])) {
-        $query .= ':is_admin, ';
+      // Adicionar marcador de posição para admin se estiver definido no array $user
+      if (isset($user['admin'])) {
+        $query .= ':admin, ';
       }
 
-      $query .= ':password)';
+      $query .= ':senha)';
 
       $statement = $this->pdo->prepare($query);
       $statement->execute($user);
@@ -88,18 +93,18 @@ class UserService
   }
 
 
-  private function UserExists($login)
+  private function UserExists($usuario)
   {
-    $query = 'SELECT * FROM users WHERE login = :login';
+    $query = 'SELECT * FROM usuario_transportadora WHERE usuario = :usuario';
     $statement = $this->pdo->prepare($query);
-    $statement->execute(['login' => $login]);
+    $statement->execute(['usuario' => $usuario]);
     $user = $statement->fetch(PDO::FETCH_ASSOC);
     return $user ? true : false;
   }
 
   function read()
   {
-    $query = 'SELECT id, name, phone, is_admin, login, created_at, updated_at FROM users';
+    $query = 'SELECT idusuario_transportadora, nome_completo, telefone, admin, usuario, data_cadastro, data_atualizacao FROM usuario_transportadora';
     $statement = $this->pdo->prepare($query);
     $statement->execute();
     $users = $statement->fetchAll(PDO::FETCH_ASSOC);
@@ -110,9 +115,9 @@ class UserService
   function retrieve($id)
   {
     try {
-      $query = 'SELECT id, name, login, phone, is_admin, created_at, updated_at FROM users WHERE id = :id';
+      $query = 'SELECT idusuario_transportadora, nome_completo, usuario, telefone, admin, data_cadastro, data_atualizacao FROM usuario_transportadora WHERE idusuario_transportadora = :idusuario_transportadora';
       $statement = $this->pdo->prepare($query);
-      $statement->execute(['id' => $id]);
+      $statement->execute(['idusuario_transportadora' => $id]);
       $user = $statement->fetch(PDO::FETCH_ASSOC);
 
       if (!$user) {
@@ -129,7 +134,7 @@ class UserService
 
   function update($id) {
   try {
-    $query = 'SELECT id, name, login, phone, is_admin, created_at, updated_at FROM users WHERE id = :id';
+    $query = 'SELECT idusuario_transportadora, nome_completo, usuario, telefone, admin, data_cadastro, data_atualizacao FROM usuario_transportadora WHERE idusuario_transportadora = :idusuario_transportadora';
     $statement = $this->pdo->prepare($query);
     $statement->execute(['id' => $id]);
     $user = $statement->fetch(PDO::FETCH_ASSOC);
@@ -138,17 +143,17 @@ class UserService
       throw new \Exception('User does not exists');
     }
 
-    $name = filter_var($this->data['name'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-    $phone = filter_var($this->data['phone'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-    $login = filter_var($this->data['login'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+    $nome_completo = filter_var($this->data['nome_completo'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+    $telefone = filter_var($this->data['telefone'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+    $usuario = filter_var($this->data['usuario'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
 
-    $query = 'UPDATE users SET name = :name, phone = :phone, login = :login, updated_at = CURRENT_TIMESTAMP WHERE id = :id';
+    $query = 'UPDATE usuario_transportadora SET nome_completo = :nome_completo, telefone = :telefone, usuario = :usuario, data_atualizacao = CURRENT_TIMESTAMP WHERE idusuario_transportadora = :idusuario_transportadora';
     $statement = $this->pdo->prepare($query);
     $newUser = [
-      'id' => $id,
-      'name' => $name,
-      'phone' => $phone,
-      'login' => $login,
+      'idusuario_transportadora' => $id,
+      'nome_completo' => $nome_completo,
+      'telefone' => $telefone,
+      'usuario' => $usuario,
     ];
     $statement->execute($newUser);
 
@@ -167,18 +172,18 @@ class UserService
 
   function delete($id) {
     try {
-      $query = 'SELECT id, name, login, phone, is_admin, created_at, updated_at FROM users WHERE id = :id';
+      $query = 'SELECT idusuario_transportadora, nome_completo, usuario, telefone, admin, data_cadastro, data_atualizacao FROM usuario_transportadora WHERE idusuario_transportadora = :idusuario_transportadora';
       $statement = $this->pdo->prepare($query);
-      $statement->execute(['id' => $id]);
+      $statement->execute(['idusuario_transportadora' => $id]);
       $user = $statement->fetch(PDO::FETCH_ASSOC);
 
       if (!$user) {
         throw new \Exception('User does not exists');
       }
 
-      $query = 'DELETE FROM users WHERE id = :id';
+      $query = 'DELETE FROM usuario_transportadora WHERE idusuario_transportadora = :idusuario_transportadora';
       $statement = $this->pdo->prepare($query);
-      $statement->execute(['id' => $id]);
+      $statement->execute(['idusuario_transportadora' => $id]);
 
       http_response_code(200);
       echo json_encode(['message' => 'Usário excluído com sucesso']);

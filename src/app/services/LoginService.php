@@ -13,17 +13,17 @@ class LoginService {
   }
 
   public function login() {
-    $userLogin = filter_var($this->data['login'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-    $userPass = filter_var($this->data['password'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+    $userLogin = filter_var($this->data['usuario'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+    $userPass = filter_var($this->data['senha'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
 
     if(!$userLogin || !$userPass) {
       http_response_code(400);
       throw new \Exception('missing credentials', 400);
     }
 
-    $query = "SELECT * FROM users WHERE login = :login";
+    $query = "SELECT * FROM usuario_transportadora WHERE usuario = :usuario";
     $stmt = $this->pdo->prepare($query);
-    $stmt->bindParam(':login', $userLogin);
+    $stmt->bindParam(':usuario', $userLogin);
     $stmt->execute();
     $user = $stmt->fetch();
 
@@ -32,14 +32,14 @@ class LoginService {
      throw new \Exception('User not found', 404);
     }
 
-    if(!password_verify($userPass, $user->password)) {
+    if(!password_verify($userPass, $user->senha)) {
       http_response_code(401);
       throw new \Exception('Invalide credentials');
     }
 
     $payload = [
-      'user_id' => $user->id,
-      "is_admin" => $user->is_admin,
+      'user_id' => $user->idusuario_transportadora,
+      "is_admin" => $user->admin,
       'exp' => time() + (60 * 60), 
     ];
 
@@ -49,9 +49,9 @@ class LoginService {
     echo json_encode([
       'token' => $token,
       'user' => [
-        'id' => $user->id,
-        'name' => $user->name,
-        'login' => $user->login
+        'id' => $user->idusuario_transportadora,
+        'name' => $user->nome_completo,
+        'login' => $user->usuario
       ]
     ]);
   }
