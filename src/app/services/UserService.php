@@ -136,7 +136,7 @@ class UserService
   try {
     $query = 'SELECT idusuario_transportadora, nome_completo, usuario, telefone, admin, data_cadastro, data_atualizacao FROM usuario_transportadora WHERE idusuario_transportadora = :idusuario_transportadora';
     $statement = $this->pdo->prepare($query);
-    $statement->execute(['id' => $id]);
+    $statement->execute(['idusuario_transportadora' => $id]);
     $user = $statement->fetch(PDO::FETCH_ASSOC);
 
     if (!$user) {
@@ -147,18 +147,41 @@ class UserService
     $telefone = filter_var($this->data['telefone'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
     $usuario = filter_var($this->data['usuario'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
 
-    $query = 'UPDATE usuario_transportadora SET nome_completo = :nome_completo, telefone = :telefone, usuario = :usuario, data_atualizacao = CURRENT_TIMESTAMP WHERE idusuario_transportadora = :idusuario_transportadora';
-    $statement = $this->pdo->prepare($query);
-    $newUser = [
-      'idusuario_transportadora' => $id,
-      'nome_completo' => $nome_completo,
-      'telefone' => $telefone,
-      'usuario' => $usuario,
-    ];
-    $statement->execute($newUser);
+    $query = 'UPDATE usuario_transportadora SET';
+    $updates = [];
+    $params = [];
+    
+    // Verifica e adiciona cada campo para atualização apenas se não estiver vazio
+    if (!empty($nome_completo)) {
+        $updates[] = ' nome_completo = :nome_completo';
+        $params['nome_completo'] = $nome_completo;
+    }
+    if (!empty($telefone)) {
+        $updates[] = ' telefone = :telefone';
+        $params['telefone'] = $telefone;
+    }
+    if (!empty($usuario)) {
+        $updates[] = ' usuario = :usuario';
+        $params['usuario'] = $usuario;
+    }
+    
+    // Adiciona a cláusula SET apenas se houver campos para atualização
+    if (!empty($updates)) {
+        $query .= implode(',', $updates);
+        $query .= ' , data_atualizacao = CURRENT_TIMESTAMP';
+        $query .= ' WHERE idusuario_transportadora = :idusuario_transportadora';
+        $params['idusuario_transportadora'] = $id;
+    
+        $statement = $this->pdo->prepare($query);
+        $statement->execute($params);
+    } else {
+        http_response_code(400);
+        echo json_encode(["message" => "Nenhum campo fornecido para atualização."]);
+    }
+    
 
     http_response_code(200);
-    echo json_encode(['message' => 'Usário atualizado com sucesso', 'user' => $newUser]);
+    echo json_encode(['message' => 'Usário atualizado com sucesso']);
     exit();
 
 

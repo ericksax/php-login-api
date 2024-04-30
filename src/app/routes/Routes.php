@@ -42,7 +42,10 @@ class Routes {
         '/users/(\d+)' => function($id) {
           return self::load('UserController', 'retrieve', [$id]);
         },
-        '/documents' => fn() => self::load('HomeController', 'index'),
+        '/documents' => function() {
+      
+        return self::load('DocumentController', 'readByNFKey');
+        },
         '/documents/(\d+)' => function($id) {
           return self::load('DocumentController', 'read', [$id]);
         }

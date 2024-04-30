@@ -15,4 +15,11 @@ class DocumentController
         $service = new DocumentService();
         $service->update($id);
     }
+
+    public function readByNFKey(){
+
+        $service = new DocumentService();
+        $service->readByNFKey();
+    }
+    
 }
