@@ -22,8 +22,8 @@ class UserService
     $nome_completo = filter_var($this->data['nome_completo'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
     $senha = filter_var($this->data['senha'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
     $telefone = filter_var($this->data['telefone'], FILTER_SANITIZE_NUMBER_INT);
-    
-    if(!isset($this->data['admin'])) {
+
+    if (!isset($this->data['admin'])) {
       $admin = false;
     } else {
       $admin = filter_var($this->data['admin'], FILTER_VALIDATE_BOOLEAN);
@@ -104,12 +104,19 @@ class UserService
 
   function read()
   {
-    $query = 'SELECT idusuario_transportadora, nome_completo, telefone, admin, usuario, data_cadastro, data_atualizacao FROM usuario_transportadora';
-    $statement = $this->pdo->prepare($query);
-    $statement->execute();
-    $users = $statement->fetchAll(PDO::FETCH_ASSOC);
+    try {
+      $query = 'SELECT idusuario_transportadora, nome_completo, telefone, admin, usuario, data_cadastro, data_atualizacao FROM usuario_transportadora';
+      $statement = $this->pdo->prepare($query);
+      $statement->execute();
+      $users = $statement->fetchAll(PDO::FETCH_ASSOC);
+  
+      http_response_code(200);
+      echo json_encode($users);
 
-    echo json_encode($users);
+    } catch (\PDOException $e) {
+      http_response_code(500);
+      throw new \Exception('Erro ao buscar usuários: ' . $e->getMessage());
+    }
   }
 
   function retrieve($id)
@@ -127,73 +134,69 @@ class UserService
       echo json_encode($user);
     } catch (\PDOException $e) {
       echo json_encode(['message' => 'Erro ao buscar usuário: ' . $e->getMessage()]);
+    } 
+  }
+
+  function update($id)
+  {
+    try {
+      $query = 'SELECT idusuario_transportadora, nome_completo, usuario, telefone, admin, data_cadastro, data_atualizacao FROM usuario_transportadora WHERE idusuario_transportadora = :idusuario_transportadora';
+      $statement = $this->pdo->prepare($query);
+      $statement->execute(['idusuario_transportadora' => $id]);
+      $user = $statement->fetch(PDO::FETCH_ASSOC);
+
+      if (!$user) {
+        throw new \Exception('User does not exists', 404);
+      }
+
+      $nome_completo = filter_var($this->data['nome_completo'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+      $telefone = filter_var($this->data['telefone'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+      $usuario = filter_var($this->data['usuario'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+
+      $query = 'UPDATE usuario_transportadora SET';
+      $updates = [];
+      $params = [];
+
+      // Verifica e adiciona cada campo para atualização apenas se não estiver vazio
+      if (!empty($nome_completo)) {
+        $updates[] = ' nome_completo = :nome_completo';
+        $params['nome_completo'] = $nome_completo;
+      }
+
+      if (!empty($telefone)) {
+        $updates[] = ' telefone = :telefone';
+        $params['telefone'] = $telefone;
+      }
+
+      if (!empty($usuario)) {
+        $updates[] = ' usuario = :usuario';
+        $params['usuario'] = $usuario;
+      }
+
+      // Adiciona a cláusula SET apenas se houver campos para atualização
+      if (!empty($updates)) {
+        $query .= implode(',', $updates);
+        $query .= ' , data_atualizacao = CURRENT_TIMESTAMP';
+        $query .= ' WHERE idusuario_transportadora = :idusuario_transportadora';
+        $params['idusuario_transportadora'] = $id;
+
+        $statement = $this->pdo->prepare($query);
+        $statement->execute($params);
+      } else {
+        http_response_code(400);
+        echo json_encode(["message" => "Nenhum campo fornecido para atualização."]);
+      }
+
+      http_response_code(200);
+      echo json_encode(['message' => 'Usário atualizado com sucesso']);
+      exit();
     } catch (\Exception $e) {
       echo json_encode(['message' => $e->getMessage()]);
     }
   }
 
-  function update($id) {
-  try {
-    $query = 'SELECT idusuario_transportadora, nome_completo, usuario, telefone, admin, data_cadastro, data_atualizacao FROM usuario_transportadora WHERE idusuario_transportadora = :idusuario_transportadora';
-    $statement = $this->pdo->prepare($query);
-    $statement->execute(['idusuario_transportadora' => $id]);
-    $user = $statement->fetch(PDO::FETCH_ASSOC);
-
-    if (!$user) {
-      throw new \Exception('User does not exists');
-    }
-
-    $nome_completo = filter_var($this->data['nome_completo'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-    $telefone = filter_var($this->data['telefone'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-    $usuario = filter_var($this->data['usuario'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-
-    $query = 'UPDATE usuario_transportadora SET';
-    $updates = [];
-    $params = [];
-    
-    // Verifica e adiciona cada campo para atualização apenas se não estiver vazio
-    if (!empty($nome_completo)) {
-        $updates[] = ' nome_completo = :nome_completo';
-        $params['nome_completo'] = $nome_completo;
-    }
-    if (!empty($telefone)) {
-        $updates[] = ' telefone = :telefone';
-        $params['telefone'] = $telefone;
-    }
-    if (!empty($usuario)) {
-        $updates[] = ' usuario = :usuario';
-        $params['usuario'] = $usuario;
-    }
-    
-    // Adiciona a cláusula SET apenas se houver campos para atualização
-    if (!empty($updates)) {
-        $query .= implode(',', $updates);
-        $query .= ' , data_atualizacao = CURRENT_TIMESTAMP';
-        $query .= ' WHERE idusuario_transportadora = :idusuario_transportadora';
-        $params['idusuario_transportadora'] = $id;
-    
-        $statement = $this->pdo->prepare($query);
-        $statement->execute($params);
-    } else {
-        http_response_code(400);
-        echo json_encode(["message" => "Nenhum campo fornecido para atualização."]);
-    }
-    
-
-    http_response_code(200);
-    echo json_encode(['message' => 'Usário atualizado com sucesso']);
-    exit();
-
-
-  } catch (\PDOException $e) {
-    echo json_encode(['message' => 'Erro ao buscar usuário: ' . $e->getMessage()]);
-  } catch (\Exception $e) {
-    echo json_encode(['message' => $e->getMessage()]);
-  }
-  }
-
-
-  function delete($id) {
+  function delete($id)
+  {
     try {
       $query = 'SELECT idusuario_transportadora, nome_completo, usuario, telefone, admin, data_cadastro, data_atualizacao FROM usuario_transportadora WHERE idusuario_transportadora = :idusuario_transportadora';
       $statement = $this->pdo->prepare($query);
@@ -211,13 +214,8 @@ class UserService
       http_response_code(200);
       echo json_encode(['message' => 'Usário excluído com sucesso']);
       exit();
-
-
     } catch (\PDOException $e) {
       echo json_encode(['message' => 'Erro ao buscar usuário: ' . $e->getMessage()]);
-    } catch (\Exception $e) {
-      echo json_encode(['message' => $e->getMessage()]);
-    }
-
+    } 
   }
 }

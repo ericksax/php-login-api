@@ -1,17 +1,20 @@
 <?php
+
 namespace Erick\PhpLoginApi\app\routes;
 
 use Erick\PhpLoginApi\app\helpers\Request;
 use Erick\PhpLoginApi\app\helpers\Uri;
 
-class Routes {
+class Routes
+{
   public const CONTROLLER_NAMESPACE = 'Erick\PhpLoginApi\app\controllers\\';
 
-  static function load(string $controller, string $action, $params = []) {
+  static function load(string $controller, string $action, $params = [])
+  {
     $controllerClass = self::CONTROLLER_NAMESPACE . $controller;
 
-    if(!class_exists($controllerClass)) {
-     throw new \Exception('Controller ' . $controller . ' not found', 404);
+    if (!class_exists($controllerClass)) {
+      throw new \Exception('Controller ' . $controller . ' not found', 404);
     }
 
     $controllerInstance = new $controllerClass();
@@ -24,42 +27,41 @@ class Routes {
     return call_user_func_array([$controllerInstance, $action], $params);
   }
 
-  public static function getRoutes() {
+  public static function getRoutes()
+  {
 
     $routes = [
       'POST' => [
-        '/login' => fn() => self::load('LoginController', 'login'),
-        '/document' => fn() => self::load('RegisterController', 'createDocument'),
-        '/users' => fn() => self::load('UserController', 'createUser'),
-        '/upload' => fn() => self::load('ImageController', 'uploadImage'),
-        '/documents/(\d+)' => function($id) { 
+        '/login' => fn () => self::load('LoginController', 'login'),
+        '/document' => fn () => self::load('RegisterController', 'createDocument'),
+        '/users' => fn () => self::load('UserController', 'createUser'),
+        '/documents/(\d+)' => function ($id) {
           return self::load('DocumentController', 'updateDocument', [$id]);
         }
       ],
       'GET' => [
-        '/users' => fn() => self::load('UserController', 'showUsers'),
+        '/users' => fn () => self::load('UserController', 'showUsers'),
         // Modificando para capturar o ID dinâmico
-        '/users/(\d+)' => function($id) {
+        '/users/(\d+)' => function ($id) {
           return self::load('UserController', 'retrieve', [$id]);
         },
-        '/documents' => function() {
-      
-        return self::load('DocumentController', 'readByNFKey');
+        '/documents' => function () {
+          return self::load('DocumentController', 'readByNFKey');
         },
-        '/documents/(\d+)' => function($id) {
+        '/documents/(\d+)' => function ($id) {
           return self::load('DocumentController', 'read', [$id]);
         }
       ],
       'PUT' => [
-        '/documents/(\d+)' => function($id) {
+        '/documents/(\d+)' => function ($id) {
           return  self::load('DocumentController', 'updateDocument', [$id]);
         },
-        '/users/(\d+)' => function($id) {
+        '/users/(\d+)' => function ($id) {
           return self::load('UserController', 'updateUser', [$id]);
         },
       ],
       'DELETE' => [
-        '/users/(\d+)' => function($id) {
+        '/users/(\d+)' => function ($id) {
           return self::load('UserController', 'deleteUser', [$id]);
         },
       ]
@@ -67,13 +69,15 @@ class Routes {
     return $routes;
   }
 
-  public static function execute() {
+  public static function execute()
+  {
     try {
       $routes = self::getRoutes();
       $method = Request::get();
       $path = Uri::get('path');
 
-      if(!isset($routes[$method])) {
+      if (!isset($routes[$method])) {
+        http_response_code(404);
         throw new \Exception('Route Method not found in its API', 404);
       }
 
@@ -90,7 +94,6 @@ class Routes {
       }
 
       throw new \Exception('Route not found', 404);
-
     } catch (\Throwable $th) {
       echo $th->getMessage();
     }

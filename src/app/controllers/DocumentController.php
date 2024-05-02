@@ -1,5 +1,7 @@
 <?php
+
 namespace Erick\PhpLoginApi\app\controllers;
+
 use Erick\PhpLoginApi\app\services\DocumentService;
 
 class DocumentController
@@ -10,16 +12,16 @@ class DocumentController
         $service->read($id);
     }
 
-    public function updateDocument($id) 
+    public function updateDocument($id)
     {
         $service = new DocumentService();
         $service->update($id);
     }
 
-    public function readByNFKey(){
+    public function readByNFKey()
+    {
 
         $service = new DocumentService();
         $service->readByNFKey();
     }
-    
 }

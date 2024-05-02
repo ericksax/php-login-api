@@ -1,5 +1,7 @@
 <?php
+
 namespace Erick\PhpLoginApi\app\services;
+
 use Erick\PhpLoginApi\database\Connection;
 
 class DocumentService
@@ -34,14 +36,13 @@ class DocumentService
       $statement->execute(['iddocumento' => $id]);
       $document = $statement->fetch(\PDO::FETCH_ASSOC);
 
-      if(!$document) {
+      if (!$document) {
         http_response_code(404);
         throw new \Exception('Document not found', 404);
       }
 
       http_response_code(200);
       echo json_encode($document, JSON_PRETTY_PRINT);
-
     } catch (\Exception $e) {
       http_response_code(500);
       echo json_encode(['message' => $e->getMessage()]);
@@ -50,7 +51,7 @@ class DocumentService
 
   public function readByNFKey()
   {
-    $chave =  filter_var( $_GET['chave'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+    $chave =  filter_var($_GET['chave'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
 
     try {
       $query = 'SELECT dc.*, 
@@ -69,14 +70,13 @@ class DocumentService
       $statement->execute(['chave_acesso' => $chave]);
       $document = $statement->fetch(\PDO::FETCH_ASSOC);
 
-      if(!$document) {
+      if (!$document) {
         http_response_code(404);
         throw new \Exception('Document not found', 404);
       }
 
       http_response_code(200);
       echo json_encode($document, JSON_PRETTY_PRINT);
-
     } catch (\Exception $e) {
       http_response_code(500);
       echo json_encode(['message' => $e->getMessage()]);
@@ -91,12 +91,12 @@ class DocumentService
       $statement->execute(['iddocumento' => $id]);
       $document = $statement->fetch(\PDO::FETCH_ASSOC);
 
-      if(!$document) {
+      if (!$document) {
         http_response_code(404);
         throw new \Exception("Document not found", 404);
       }
 
-      if(!$this->data) {
+      if (!$this->data) {
         echo json_encode($this->data);
         http_response_code(400);
         throw new \Exception("Dados inválidos", 400);
@@ -105,38 +105,38 @@ class DocumentService
 
       $query = 'UPDATE documento_canhoto SET';
       $params = [];
-      
+
       if (isset($this->data['recebedor_nome'])) {
         $query .= ' recebedor_nome = :recebedor_nome,';
         $params['recebedor_nome'] = $this->data['recebedor_nome'];
       }
-      
+
       if (isset($this->data['recebedor_documento'])) {
         $query .= ' recebedor_documento = :recebedor_documento,';
         $params['recebedor_documento'] = $this->data['recebedor_documento'];
       }
-      
+
       if (isset($this->image['name'])) {
         $query .= ' foto_canhoto = :foto_canhoto,';
         $params['foto_canhoto'] = str_replace('\\', '\\\\', 'http:\\') . 'localhost:8000\\uploads\\' . $this->image['name'];
       }
-      
+
       $query .= ' data_atualizacao = :data_atualizacao WHERE iddocumento = :iddocumento';
       $params['iddocumento'] = $id;
       $params['data_atualizacao'] = date('Y-m-d H:i:s');
-      
+
       // Remover a última vírgula, se houver
       $query = rtrim($query, ',');
-      
+
       $statement = $this->pdo->prepare($query);
       $statement->execute($params);
-      
+
 
       move_uploaded_file($this->image['tmp_name'], $imagePath);
 
       http_response_code(200);
       echo json_encode(['message' => 'Document updated successfully']);
-    } catch(\Throwable $th) {
+    } catch (\Throwable $th) {
       http_response_code((int) $th->getCode());
       echo $th->getMessage();
     }
