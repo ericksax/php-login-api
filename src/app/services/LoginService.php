@@ -1,8 +1,8 @@
 <?php
 
-namespace Erick\PhpLoginApi\app\services;
+namespace src\app\services;
 
-use Erick\PhpLoginApi\database\Connection;
+use src\database\Connection;
 use Firebase\JWT\JWT;
 
 class LoginService

@@ -1,8 +1,8 @@
 <?php
 
-namespace Erick\PhpLoginApi\app\controllers;
+namespace src\app\controllers;
 
-use Erick\PhpLoginApi\app\services\LoginService;
+use src\app\services\LoginService;
 
 class LoginController
 {

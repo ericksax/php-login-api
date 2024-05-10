@@ -1,8 +1,8 @@
 <?php
 
-namespace Erick\PhpLoginApi\app\controllers;
+namespace src\app\controllers;
 
-use Erick\PhpLoginApi\app\services\DocumentService;
+use src\app\services\DocumentService;
 
 class DocumentController
 {

@@ -1,8 +1,8 @@
 <?php
 
-namespace Erick\PhpLoginApi\app\services;
+namespace src\app\services;
 
-use Erick\PhpLoginApi\database\Connection;
+use src\database\Connection;
 use PDO;
 
 class UserService
@@ -21,15 +21,16 @@ class UserService
     $usuario = filter_var($this->data['usuario'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
     $nome_completo = filter_var($this->data['nome_completo'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
     $senha = filter_var($this->data['senha'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+    $cpfcnpj = filter_var($this->data['cpfcnpj'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
     $telefone = filter_var($this->data['telefone'], FILTER_SANITIZE_NUMBER_INT);
 
     if (!isset($this->data['admin'])) {
-      $admin = false;
+      $admin = 0;
     } else {
-      $admin = filter_var($this->data['admin'], FILTER_VALIDATE_BOOLEAN);
+      $admin = filter_var($this->data['admin'], FILTER_SANITIZE_NUMBER_INT);
     }
 
-    if (!$usuario || !$nome_completo || !$senha || !$telefone) {
+    if (!$usuario || !$nome_completo || !$senha || !$telefone || !$cpfcnpj) {
       http_response_code(400); // Requisição inválida
       echo json_encode(['message' => 'Todos os campos são obrigatórios']);
       exit();
@@ -54,23 +55,24 @@ class UserService
         'usuario' => $usuario,
         'nome_completo' => $nome_completo,
         'telefone' => $telefone,
+        'cpfcnpj' => $cpfcnpj,
         'senha' => $encryptedPassword,
       ];
 
 
       if ($admin) {
-        $user['admin'] = true;
+        $user['admin'] = 1;
       }
 
       // Montar a query SQL com base no array $user
-      $query = 'INSERT INTO usuario_transportadora (usuario, nome_completo, telefone, ';
+      $query = 'INSERT INTO usuario_transportadora (usuario, nome_completo, telefone, cpfcnpj, ';
 
       // Adicionar admin à query se estiver definido no array $user
       if (isset($user['admin'])) {
         $query .= 'admin, ';
       }
 
-      $query .= 'senha) VALUES (:usuario, :nome_completo, :telefone, ';
+      $query .= 'senha) VALUES (:usuario, :nome_completo, :telefone, :cpfcnpj,';
 
       // Adicionar marcador de posição para admin se estiver definido no array $user
       if (isset($user['admin'])) {
@@ -92,7 +94,6 @@ class UserService
     }
   }
 
-
   private function UserExists($usuario)
   {
     $query = 'SELECT * FROM usuario_transportadora WHERE usuario = :usuario';
@@ -105,7 +106,7 @@ class UserService
   function read()
   {
     try {
-      $query = 'SELECT idusuario_transportadora, nome_completo, telefone, admin, usuario, data_cadastro, data_atualizacao FROM usuario_transportadora';
+      $query = 'SELECT idusuario_transportadora, nome_completo, telefone, admin, usuario, cpfcnpj, data_cadastro, data_atualizacao FROM usuario_transportadora';
       $statement = $this->pdo->prepare($query);
       $statement->execute();
       $users = $statement->fetchAll(PDO::FETCH_ASSOC);
@@ -122,7 +123,7 @@ class UserService
   function retrieve($id)
   {
     try {
-      $query = 'SELECT idusuario_transportadora, nome_completo, usuario, telefone, admin, data_cadastro, data_atualizacao FROM usuario_transportadora WHERE idusuario_transportadora = :idusuario_transportadora';
+      $query = 'SELECT idusuario_transportadora, nome_completo, usuario, telefone, admin, cpfcnpj, data_cadastro, data_atualizacao FROM usuario_transportadora WHERE idusuario_transportadora = :idusuario_transportadora';
       $statement = $this->pdo->prepare($query);
       $statement->execute(['idusuario_transportadora' => $id]);
       $user = $statement->fetch(PDO::FETCH_ASSOC);
@@ -140,7 +141,7 @@ class UserService
   function update($id)
   {
     try {
-      $query = 'SELECT idusuario_transportadora, nome_completo, usuario, telefone, admin, data_cadastro, data_atualizacao FROM usuario_transportadora WHERE idusuario_transportadora = :idusuario_transportadora';
+      $query = 'SELECT idusuario_transportadora, nome_completo, usuario, telefone, admin, cpfcnpj, data_cadastro, data_atualizacao FROM usuario_transportadora WHERE idusuario_transportadora = :idusuario_transportadora';
       $statement = $this->pdo->prepare($query);
       $statement->execute(['idusuario_transportadora' => $id]);
       $user = $statement->fetch(PDO::FETCH_ASSOC);
@@ -152,6 +153,7 @@ class UserService
       $nome_completo = filter_var($this->data['nome_completo'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
       $telefone = filter_var($this->data['telefone'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
       $usuario = filter_var($this->data['usuario'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+      $cpfcnpj= filter_var($this->data['cpfcnpj'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
 
       $query = 'UPDATE usuario_transportadora SET';
       $updates = [];
@@ -171,6 +173,11 @@ class UserService
       if (!empty($usuario)) {
         $updates[] = ' usuario = :usuario';
         $params['usuario'] = $usuario;
+      }
+
+      if (!empty($cpfcnpj)) {
+        $updates[] = ' cpfcnpj = :cpfcnpj';
+        $params['cpfcnpj'] = $cpfcnpj;
       }
 
       // Adiciona a cláusula SET apenas se houver campos para atualização
@@ -198,7 +205,7 @@ class UserService
   function delete($id)
   {
     try {
-      $query = 'SELECT idusuario_transportadora, nome_completo, usuario, telefone, admin, data_cadastro, data_atualizacao FROM usuario_transportadora WHERE idusuario_transportadora = :idusuario_transportadora';
+      $query = 'SELECT idusuario_transportadora, nome_completo, usuario, telefone, admin, cpfcnpj, data_cadastro, data_atualizacao FROM usuario_transportadora WHERE idusuario_transportadora = :idusuario_transportadora';
       $statement = $this->pdo->prepare($query);
       $statement->execute(['idusuario_transportadora' => $id]);
       $user = $statement->fetch(PDO::FETCH_ASSOC);

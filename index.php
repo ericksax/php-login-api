@@ -1,7 +1,7 @@
 <?php
 require './vendor/autoload.php';
 use Dotenv\Dotenv;
-use Erick\PhpLoginApi\app\routes\Routes;
+use src\app\routes\Routes;
 
 $dotenv = Dotenv::createImmutable(__DIR__);
 $dotenv->load();

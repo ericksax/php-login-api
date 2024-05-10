@@ -5,7 +5,7 @@ services:
     image: postgres
     env_file:
       - .env
-    container_name: postgres-db
+    container_name: postgres-conhoto
     restart: always
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
@@ -17,7 +17,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
   api:
     build: .
-    container_name: login-api
+    container_name: login-api-canhoto
     restart: always
     ports:
       - "8080:80"

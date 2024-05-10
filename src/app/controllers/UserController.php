@@ -1,12 +1,11 @@
 <?php
 
-namespace Erick\PhpLoginApi\app\controllers;
+namespace src\app\controllers;
 
-use Erick\PhpLoginApi\app\services\UserService;
+use src\app\services\UserService;
 
 class UserController
 {
-
   public function createUser()
   {
     $user = new UserService;

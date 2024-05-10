@@ -1,6 +1,6 @@
 <?php
 
-namespace Erick\PhpLoginApi\database;
+namespace src\database;
 
 use PDO;
 

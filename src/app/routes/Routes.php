@@ -1,13 +1,13 @@
 <?php
 
-namespace Erick\PhpLoginApi\app\routes;
+namespace src\app\routes;
 
-use Erick\PhpLoginApi\app\helpers\Request;
-use Erick\PhpLoginApi\app\helpers\Uri;
+use src\app\helpers\Request;
+use src\app\helpers\Uri;
 
 class Routes
 {
-  public const CONTROLLER_NAMESPACE = 'Erick\PhpLoginApi\app\controllers\\';
+  public const CONTROLLER_NAMESPACE = 'src\app\controllers\\';
 
   static function load(string $controller, string $action, $params = [])
   {

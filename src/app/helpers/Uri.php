@@ -1,6 +1,6 @@
 <?php
 
-namespace Erick\PhpLoginApi\app\helpers;
+namespace src\app\helpers;
 
 class Uri
 {
